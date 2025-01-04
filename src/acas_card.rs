@@ -5,6 +5,7 @@ use hex;
 use aes::{Aes128, NewBlockCipher};
 use aes::cipher::{BlockDecryptMut, KeyIvInit};
 use ctr::Ctr128BE;
+use byteorder::{BigEndian, ReadBytesExt};
 
 type AesCtr128BE = Ctr128BE<Aes128>;
 
@@ -33,10 +34,19 @@ impl AcasCard {
             return Err(Error::InvalidCard);
         }
 
+         let apdu_camid = [0x90, 0x32, 0x00, 0x01, 0x00];
+            let response_camid = self.reader.transmit(&apdu_camid)?;
+           if response_camid.len() < 2 || response_camid[response_camid.len() - 2] != 0x90 || response_camid[response_camid.len() - 1] != 0x00
+           {
+                return Err(Error::InvalidCard);
+           }
+
+           let cam_id = &response_camid[7..12];
+            println!("card ID: {}", hex::encode(cam_id));
         Ok(())
     }
 
-   fn get_a0_auth_kcl(&self) -> Result<[u8; 32], Error> {
+    fn get_a0_auth_kcl(&self) -> Result<[u8; 32], Error> {
         let mut rng = rand::thread_rng();
         let mut a0init = [0u8; 8];
         rand::Rng::fill(&mut rng, &mut a0init);
@@ -44,12 +54,12 @@ impl AcasCard {
         let mut apdu = vec![0x90, 0xA0, 0x00, 0x01, 0x00, 0x00, 0x00, 0x01, 0x00, 0x00, 0x8A, 0xF7];
         apdu.extend_from_slice(&a0init);
 
-       let response = self.reader.transmit(&apdu)?;
+        let response = self.reader.transmit(&apdu)?;
 
-       if response.len() < 2 || response[response.len() - 2] != 0x90 || response[response.len() - 1] != 0x00
-       {
-            return Err(Error::InvalidCard);
-       }
+        if response.len() < 2 || response[response.len() - 2] != 0x90 || response[response.len() - 1] != 0x00
+           {
+                return Err(Error::InvalidCard);
+           }
 
 
         let a0data = &response[..];
@@ -62,7 +72,6 @@ impl AcasCard {
         kcl_hasher.update(a0response);
         let kcl: [u8; 32] = kcl_hasher.finalize().into();
 
-
         let mut hash_hasher = Sha256::new();
         hash_hasher.update(&kcl);
         hash_hasher.update(&a0init);
@@ -72,9 +81,10 @@ impl AcasCard {
             return Err(Error::InvalidCard);
         }
         Ok(kcl)
-   }
+    }
+    
     pub fn decrypt_ecm(&self, ecm: &[u8]) -> Result<DecryptedEcm, Error> {
-        let kcl = self.get_a0_auth_kcl()?;
+      let kcl = self.get_a0_auth_kcl()?;
 
         let mut apdu = vec![0x90, 0x34, 0x00, 0x01];
         apdu.extend_from_slice(ecm);
@@ -82,25 +92,25 @@ impl AcasCard {
 
        let response = self.reader.transmit(&apdu)?;
 
-        if response.len() < 2 || response[response.len() - 2] != 0x90 || response[response.len() - 1] != 0x00 || ecm.len() != 148
-        {
-            return Err(Error::InvalidCard);
-        }
+         if response.len() < 2 || response[response.len() - 2] != 0x90 || response[response.len() - 1] != 0x00 || ecm.len() != 148
+          {
+             return Err(Error::InvalidCard);
+          }
 
         let ecm_data = &response[..];
         let ecm_response = &ecm_data[6..];
 
         let ecm_init = &ecm[4..27];
 
-       let mut hash_hasher = Sha256::new();
-       hash_hasher.update(kcl);
-       hash_hasher.update(ecm_init);
-       let mut hash = hash_hasher.finalize().to_vec();
+        let mut hash_hasher = Sha256::new();
+        hash_hasher.update(kcl);
+        hash_hasher.update(ecm_init);
+        let mut hash = hash_hasher.finalize().to_vec();
 
         for i in 0..hash.len() {
-            hash[i] ^= ecm_response[i];
+           hash[i] ^= ecm_response[i];
         }
-        
+
         let odd: [u8; 16] = hash[..16].try_into().unwrap();
         let even: [u8; 16] = hash[16..].try_into().unwrap();
 
