@@ -1,9 +1,9 @@
-# b61decoder-linux　(Rust Linux Alpha Version)
+# B61decoder-linux　(Rust Linux Alpha Version)
 
 このプログラムは、ARIB STD-B61 および ARIB STD-B60 規格に基づいた暗号化された MMTS ファイルを復号化するツールです。
 
 **注意:**
-*   このプログラムはC#で構築されたb61decoderを解析し作成されています。
+*   このプログラムはC#で構築されたB61decoder.exeを解析し作成されています。
 *   このプログラムは、ARIB STD-B61 および ARIB STD-B60 規格に基づいた暗号化された MMTS ファイルの復号化を試みるための実験的なものです。
 *   テストはほとんど行われておらず、アルファ版です。
 *   ビルド済みの実行ファイルは提供していません。
