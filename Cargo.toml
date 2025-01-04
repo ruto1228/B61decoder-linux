@@ -1,0 +1,12 @@
+[package]
+name = "b61decoder"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+pcsc = "0.7"
+sha2 = "0.10"
+hex = "0.4"
+aes = "0.8"
+ctr = "0.9"
+byteorder = "1.4"
