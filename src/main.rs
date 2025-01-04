@@ -20,7 +20,7 @@ fn main() -> Result<(), Error> {
     let encrypted_file = &args[1];
     let decrypted_file = &args[2];
 
-    let ctx = Context::establish(Scope::System)?;
+   let ctx = Context::establish(Scope::System)?;
 
     let readers = ctx.list_readers()?;
     if readers.is_empty() {
@@ -29,12 +29,12 @@ fn main() -> Result<(), Error> {
     }
 
     let iso_reader = ctx.connect(
-        &readers[0],
-        ShareMode::Shared,
-        Protocols::ANY,
-    )?;
+         &readers[0],
+         ShareMode::Shared,
+         Protocols::ANY,
+      )?;
 
-    let acas_card = AcasCard::new(iso_reader);
+   let acas_card = AcasCard::new(iso_reader);
     acas_card.init()?;
 
     let mut decrypted_ecm: Option<acas_card::DecryptedEcm> = None;
