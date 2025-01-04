@@ -28,4 +28,22 @@ sudo apt install rustc cargo libpcsclite-dev pcsc-tools openssl-dev
 *   その他ディストリビューションの場合:
 *   各ディストリビューションのパッケージ管理システムで、上記のライブラリをインストールしてください。
 
-ビルド方法
+### ビルド方法
+```
+cd b61decoder
+cargo build
+```
+
+### 使用方法
+
+ビルドが完了したら、以下のコマンドでプログラムを実行します。
+```
+./target/debug/b61decoder <encryptedfile.mmts> <decryptedfile.mmts>
+```
+
+*   <encryptedfile.mmts>: 復号化する暗号化された MMTS ファイルへのパス
+
+*   <decryptedfile.mmts>: 復号化された出力ファイルを保存するパス
+
+### 免責事項
+このソフトウェアは現状有姿で提供され、いかなる保証もありません。このソフトウェアの使用によって生じたいかなる損害についても、一切の責任を負いません。
